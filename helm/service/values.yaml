@@ -1,0 +1,92 @@
+replicaCount: 2
+
+podAnnotations: {}
+
+image:
+  repository: ""
+  tag: "latest"
+  pullPolicy: Always
+
+migration:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+management:
+  port: 8081
+
+ingress:
+  enabled: true
+  host: ""
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+startupProbe:
+  path: /health/live
+  initialDelaySeconds: 15
+  failureThreshold: 60
+  periodSeconds: 10
+
+readinessProbe:
+  path: /health/ready
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+  timeoutSeconds: 3
+
+livenessProbe:
+  path: /health/live
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  timeoutSeconds: 3
+
+lifecycle:
+  preStopSleepSeconds: 5
+
+terminationGracePeriodSeconds: 30
+
+strategy:
+  type: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+keda:
+  enabled: false
+  minReplicaCount: 0
+  maxReplicaCount: 5
+  pollingInterval: 15
+  cooldownPeriod: 60
+  queueLength: 10
+  connectionStringSecretName: ""
+  connectionStringSecretKey: connectionString
+  queues: []
+
+serviceAccount:
+  name: ""
+
+cloudSqlProxy:
+  enabled: false
+  image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.0
+  port: 5432
+  instanceConnectionName: ""
+
+env: []
+
+envFromSecrets: []

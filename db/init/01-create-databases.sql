@@ -1,0 +1,3 @@
+CREATE DATABASE hoteldb;
+CREATE DATABASE paymentdb;
+CREATE DATABASE guestdb;

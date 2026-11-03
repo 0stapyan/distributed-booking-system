@@ -1,0 +1,67 @@
+replicaCount: 1
+
+podAnnotations:
+  config.linkerd.io/default-inbound-policy: "deny"
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/payment-service
+  tag: "latest"
+  pullPolicy: Always
+
+migration:
+  enabled: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  host: ""
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 160Mi
+  limits:
+    cpu: 250m
+    memory: 384Mi
+
+startupProbe:
+  initialDelaySeconds: 10
+  failureThreshold: 30
+  periodSeconds: 5
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Otel__Endpoint
+    value: http://otel-collector-opentelemetry-collector.team-06.svc.cluster.local:4317
+  - name: RabbitMq__HostName
+    value: rabbitmq.messaging.svc.cluster.local
+  - name: RabbitMq__Port
+    value: "5672"
+  - name: RabbitMq__UserName
+    value: team-06-payment-service
+  - name: RabbitMq__VirtualHost
+    value: /team-06
+  - name: Payment__SimulateFailure
+    value: "false"
+  - name: ConnectionStrings__DefaultConnection
+    value: "Host=127.0.0.1;Port=5432;Database=team_06_payment;Username=cloudsql-proxy-team-06@kse-distributed-systems-2026.iam;Password=unused-iam-auth;SslMode=Disable"
+
+envFromSecrets:
+  - name: RabbitMq__Password
+    secretName: rabbitmq-payment-service-credentials
+    secretKey: password
+
+serviceAccount:
+  name: payment-service
+
+cloudSqlProxy:
+  enabled: true
+  instanceConnectionName: "kse-distributed-systems-2026:europe-central2:kse-ds-postgres"

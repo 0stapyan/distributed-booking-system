@@ -1,0 +1,87 @@
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: booking-service
+  namespace: team-06
+spec:
+  server:
+    name: booking-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: api-gateway
+          namespace: team-06
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: guest-score-service
+  namespace: team-06
+spec:
+  server:
+    name: guest-score-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: api-gateway
+          namespace: team-06
+        - name: booking-service
+          namespace: team-06
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: guest-service
+  namespace: team-06
+spec:
+  server:
+    name: guest-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: guest-score-service
+          namespace: team-06
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: payment-service
+  namespace: team-06
+spec:
+  server:
+    name: payment-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: guest-score-service
+          namespace: team-06
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: hotel-service
+  namespace: team-06
+spec:
+  server:
+    name: hotel-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: api-gateway
+          namespace: team-06
+        - name: admin-gateway
+          namespace: team-06
+---
+apiVersion: policy.linkerd.io/v1beta1
+kind: ServerAuthorization
+metadata:
+  name: analytics-service
+  namespace: team-06
+spec:
+  server:
+    name: analytics-service
+  client:
+    meshTLS:
+      serviceAccounts:
+        - name: admin-gateway
+          namespace: team-06

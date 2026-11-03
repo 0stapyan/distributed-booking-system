@@ -1,0 +1,35 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ .Release.Name }}-rabbitmq-auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: {{ .Values.keda.connectionStringSecretName }}
+      key: {{ .Values.keda.connectionStringSecretKey }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ .Release.Name }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  pollingInterval: {{ .Values.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  triggers:
+    {{- range .Values.keda.queues }}
+    - type: rabbitmq
+      metadata:
+        queueName: {{ . }}
+        mode: QueueLength
+        value: "{{ $.Values.keda.queueLength }}"
+      authenticationRef:
+        name: {{ $.Release.Name }}-rabbitmq-auth
+    {{- end }}
+{{- end }}

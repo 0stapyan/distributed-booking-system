@@ -1,0 +1,36 @@
+apiVersion: policy.linkerd.io/v1beta1
+kind: Server
+metadata:
+  name: guest-score-service
+  namespace: team-06
+spec:
+  podSelector:
+    matchLabels:
+      app: guest-score-service
+  port: 8080
+  proxyProtocol: HTTP/1
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: guest-score-clients
+  namespace: team-06
+spec:
+  identities:
+    - "api-gateway.team-06.serviceaccount.identity.linkerd.cluster.local"
+    - "booking-service.team-06.serviceaccount.identity.linkerd.cluster.local"
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: guest-score-service-authz
+  namespace: team-06
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: guest-score-service
+  requiredAuthenticationRefs:
+    - name: guest-score-clients
+      kind: MeshTLSAuthentication
+      group: policy.linkerd.io

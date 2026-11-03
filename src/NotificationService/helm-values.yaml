@@ -1,0 +1,72 @@
+replicaCount: 1
+
+keda:
+  enabled: true
+  minReplicaCount: 0
+  maxReplicaCount: 5
+  pollingInterval: 15
+  cooldownPeriod: 60
+  queueLength: 10
+  connectionStringSecretName: rabbitmq-notification-service-credentials
+  connectionStringSecretKey: connectionString
+  queues:
+    - team-06.bookings.booking-created
+    - team-06.saga.booking-confirmed
+    - team-06.saga.booking-cancelled
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/notification-service
+  tag: "latest"
+  pullPolicy: Always
+
+migration:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  host: ""
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+startupProbe:
+  initialDelaySeconds: 10
+  failureThreshold: 30
+  periodSeconds: 5
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Otel__Endpoint
+    value: http://otel-collector-opentelemetry-collector.team-06.svc.cluster.local:4317
+  - name: RabbitMq__HostName
+    value: rabbitmq.messaging.svc.cluster.local
+  - name: RabbitMq__Port
+    value: "5672"
+  - name: RabbitMq__UserName
+    value: team-06-notification-service
+  - name: RabbitMq__VirtualHost
+    value: /team-06
+  - name: Consumer__MaxRetries
+    value: "3"
+
+envFromSecrets:
+  - name: RabbitMq__Password
+    secretName: rabbitmq-notification-service-credentials
+    secretKey: password
+
+serviceAccount:
+  name: notification-service

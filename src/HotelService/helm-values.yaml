@@ -1,0 +1,55 @@
+replicaCount: 2
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/hotel-service
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  host: team-06.hotel.34.116.253.250.nip.io
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 160Mi
+  limits:
+    cpu: 250m
+    memory: 384Mi
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Otel__Endpoint
+    value: http://otel-collector-opentelemetry-collector.team-06.svc.cluster.local:4317
+  - name: MaintenanceMode__Write
+    value: "false"
+  - name: RabbitMq__HostName
+    value: rabbitmq.messaging.svc.cluster.local
+  - name: RabbitMq__Port
+    value: "5672"
+  - name: RabbitMq__UserName
+    value: team-06-hotel-service
+  - name: RabbitMq__VirtualHost
+    value: /team-06
+
+migration:
+  enabled: true
+
+envFromSecrets:
+  - name: ConnectionStrings__DefaultConnection
+    secretName: hotel-service-db-secret
+    secretKey: ConnectionStrings__DefaultConnection
+  - name: RabbitMq__Password
+    secretName: rabbitmq-hotel-service-credentials
+    secretKey: password
+serviceAccount:
+  name: hotel-service

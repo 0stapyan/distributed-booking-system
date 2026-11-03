@@ -1,0 +1,65 @@
+{
+  "consumer": {
+    "name": "GuestScoreService"
+  },
+  "interactions": [
+    {
+      "description": "a request for payment stats when failures are elevated",
+      "providerStates": [
+        {
+          "name": "there are 10 payments, 4 of which failed"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/internal/payments/stats"
+      },
+      "response": {
+        "body": {
+          "charged": 6,
+          "failed": 4,
+          "total": 10
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request for payment stats when no payments exist",
+      "providerStates": [
+        {
+          "name": "there are no payments"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/internal/payments/stats"
+      },
+      "response": {
+        "body": {
+          "charged": 0,
+          "failed": 0,
+          "total": 0
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.27",
+      "models": "1.2.8"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "PaymentService"
+  }
+}

@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/analytics-service
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+migration:
+  enabled: false
+
+ingress:
+  enabled: true
+  host: team-06.analytics.34.116.253.250.nip.io
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Jwt__Authority
+    value: https://keycloak.34.116.253.250.nip.io/realms/team-06
+  - name: Jwt__MetadataAddress
+    value: http://keycloak.auth.svc.cluster.local/realms/team-06/.well-known/openid-configuration
+  - name: Jwt__Audience
+    value: account
+
+envFromSecrets:
+  - name: ConnectionStrings__ClickHouse
+    secretName: analytics-clickhouse-secret
+    secretKey: ConnectionStrings__ClickHouse
+
+serviceAccount:
+  name: analytics-service

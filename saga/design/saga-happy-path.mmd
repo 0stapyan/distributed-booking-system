@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor Client
+    participant B as BookingService
+    participant MQ as RabbitMQ team-06.saga
+    participant H as HotelService
+    participant P as PaymentService
+    participant N as NotificationService
+    Client->>B: POST api/bookings
+    B->>B: create Booking Pending and Saga Started
+    B-->>MQ: reserve-room via outbox
+    B-->>Client: 202 Accepted bookingId correlationId
+    MQ->>H: reserve-room
+    H->>H: reserve room locally and compute total
+    H-->>MQ: room-reserved via outbox
+    MQ->>B: room-reserved
+    B->>B: Saga RoomReserved and set TotalPrice
+    B-->>MQ: charge-payment via outbox
+    MQ->>P: charge-payment
+    P->>P: create Payment Charged
+    P-->>MQ: payment-charged via outbox
+    MQ->>B: payment-charged
+    B->>B: PIVOT Saga Completed and Booking Confirmed
+    B-->>MQ: booking-confirmed via outbox
+    MQ->>N: booking-confirmed
+    N->>N: send confirmation

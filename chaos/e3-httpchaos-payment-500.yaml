@@ -1,0 +1,18 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: HTTPChaos
+metadata:
+  name: e3-payment-500
+  namespace: team-06
+spec:
+  mode: fixed
+  value: "1"
+  selector:
+    namespaces:
+      - team-06
+    labelSelectors:
+      app: payment-service
+  target: Request
+  port: 8080
+  path: "/api/internal/payments/stats"
+  abort: true
+  duration: "5m"

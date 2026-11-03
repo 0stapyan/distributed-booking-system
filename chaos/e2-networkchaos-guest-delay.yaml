@@ -1,0 +1,18 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: e2-guest-network-delay
+  namespace: team-06
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - team-06
+    labelSelectors:
+      app: guest-service
+  delay:
+    latency: "3s"
+    correlation: "0"
+    jitter: "0ms"
+  duration: "5m"

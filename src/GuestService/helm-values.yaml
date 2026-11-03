@@ -1,0 +1,45 @@
+replicaCount: 2
+
+migration:
+  enabled: true
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/guest-service
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  host: team-06.guest.34.116.253.250.nip.io
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Otel__Endpoint
+    value: http://otel-collector-opentelemetry-collector.team-06.svc.cluster.local:4317
+  - name: MaintenanceMode__Write
+    value: "false"
+
+envFromSecrets:
+  - name: ConnectionStrings__DefaultConnection
+    secretName: guest-service-db-secret
+    secretKey: ConnectionStrings__DefaultConnection
+
+serviceAccount:
+  name: guest-service

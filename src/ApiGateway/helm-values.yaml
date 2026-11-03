@@ -1,0 +1,70 @@
+replicaCount: 1
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/api-gateway
+  tag: "latest"
+  pullPolicy: Always
+
+migration:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  host: team-06.api.34.116.253.250.nip.io
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-name: "bff-route"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "86400"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Jwt__Authority
+    value: https://keycloak.34.116.253.250.nip.io/realms/team-06
+  - name: Jwt__MetadataAddress
+    value: http://keycloak.auth.svc.cluster.local/realms/team-06/.well-known/openid-configuration
+  - name: Jwt__Audience
+    value: account
+  - name: Oidc__ClientId
+    value: shop-web
+  - name: Redis__Host
+    value: redis-master.team-06.svc.cluster.local:6379
+  - name: RateLimit__PermitLimit
+    value: "100"
+  - name: RateLimit__WindowSeconds
+    value: "60"
+
+envFromSecrets:
+  - name: Oidc__ClientSecret
+    secretName: gateway-oidc-secret
+    secretKey: Oidc__ClientSecret
+  - name: Redis__Password
+    secretName: redis
+    secretKey: redis-password
+serviceAccount:
+  name: api-gateway

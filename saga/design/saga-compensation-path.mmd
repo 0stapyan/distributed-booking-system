@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor Client
+    participant B as BookingService
+    participant MQ as RabbitMQ team-06.saga
+    participant H as HotelService
+    participant P as PaymentService
+    Client->>B: POST api/bookings
+    B->>B: create Booking Pending and Saga Started
+    B-->>MQ: reserve-room via outbox
+    MQ->>H: reserve-room
+    H->>H: reserve room locally
+    H-->>MQ: room-reserved via outbox
+    MQ->>B: room-reserved
+    B->>B: Saga RoomReserved
+    B-->>MQ: charge-payment via outbox
+    MQ->>P: charge-payment
+    P->>P: payment FAILS injected
+    P-->>MQ: payment-failed via outbox
+    MQ->>B: payment-failed
+    B->>B: Saga Compensating pre pivot failure
+    Note over B,H: compensate already completed steps in reverse order
+    B-->>MQ: release-room via outbox
+    MQ->>H: release-room
+    H->>H: release room IsAvailable true
+    H-->>MQ: room-released via outbox
+    MQ->>B: room-released
+    B->>B: Saga Cancelled and Booking Cancelled

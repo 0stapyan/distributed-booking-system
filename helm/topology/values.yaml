@@ -1,0 +1,8 @@
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/topology-migrator
+  tag: "latest"
+  pullPolicy: Always
+
+rabbitmq:
+  hostName: rabbitmq.messaging.svc.cluster.local
+  port: "5672"

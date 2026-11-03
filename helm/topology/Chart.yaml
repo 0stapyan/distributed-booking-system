@@ -1,0 +1,6 @@
+apiVersion: v2
+name: topology
+description: RabbitMQ topology migrator - declares exchanges, queues, and bindings for team-06
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

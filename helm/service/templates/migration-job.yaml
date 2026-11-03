@@ -1,0 +1,57 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-migrate
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
+      {{- if .Values.cloudSqlProxy.enabled }}
+      initContainers:
+        - name: cloud-sql-proxy
+          image: "{{ .Values.cloudSqlProxy.image }}"
+          restartPolicy: Always
+          args:
+            - "--structured-logs"
+            - "--auto-iam-authn"
+            - "--port={{ .Values.cloudSqlProxy.port }}"
+            - "{{ .Values.cloudSqlProxy.instanceConnectionName }}"
+          securityContext:
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+      {{- end }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["--migrate"]
+          env:
+            {{- range .Values.envFromSecrets }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+  backoffLimit: 3
+{{- end }}

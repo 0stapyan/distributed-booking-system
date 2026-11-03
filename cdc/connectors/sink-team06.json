@@ -1,0 +1,33 @@
+{
+  "name": "sink-team06",
+  "config": {
+    "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
+    "hostname": "clickhouse.cdc.svc.cluster.local",
+    "port": "8123",
+    "database": "team_06",
+    "username": "default",
+    "password": "KseDS2026ch!",
+
+    "topics": "team-06.hotel.public.Hotels,team-06.hotel.public.Rooms,team-06.guests.public.Guests",
+    "topic2TableMap": "team-06.hotel.public.Hotels=hotels,team-06.hotel.public.Rooms=rooms,team-06.guests.public.Guests=guests",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+
+    "exactlyOnce": "false",
+    "clickhouseSettings": "input_format_skip_unknown_fields=1,date_time_input_format=best_effort",
+
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "dlq.clickhouse.team06",
+    "errors.deadletterqueue.topic.replication.factor": "1",
+    "errors.deadletterqueue.context.headers.enable": "true",
+
+    "transforms": "rename_fields,drop_extra",
+    "transforms.rename_fields.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.rename_fields.renames": "__lsn:replica_lsn,__deleted:is_deleted",
+    "transforms.drop_extra.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.drop_extra.exclude": "__op,__ts_ms,__table"
+  }
+}

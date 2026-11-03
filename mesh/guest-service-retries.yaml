@@ -1,0 +1,17 @@
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: guest-service.team-06.svc.cluster.local
+  namespace: team-06
+spec:
+  retryBudget:
+    retryRatio: 0.2
+    minRetriesPerSecond: 10
+    ttl: 10s
+  routes:
+    - name: GET /api/internal/guests/{id}
+      condition:
+        method: GET
+        pathRegex: /api/internal/guests/\d+
+      isRetryable: true
+      timeout: 5s

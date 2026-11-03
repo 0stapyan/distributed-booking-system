@@ -1,0 +1,59 @@
+replicaCount: 1
+
+image:
+  repository: europe-central2-docker.pkg.dev/kse-distributed-systems-2026/kse-ds-registry/team-06/guest-score-service
+  tag: "latest"
+  pullPolicy: Always
+
+migration:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  host: ""
+  ingressClassName: nginx
+
+resources:
+  requests:
+    cpu: 15m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+startupProbe:
+  initialDelaySeconds: 10
+  failureThreshold: 30
+  periodSeconds: 5
+
+hpa:
+  enabled: false
+
+keda:
+  enabled: false
+
+env:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: ASPNETCORE_URLS
+    value: http://+:8080;http://+:8081
+  - name: Otel__Endpoint
+    value: http://otel-collector-opentelemetry-collector.team-06.svc.cluster.local:4317
+  - name: Jwt__Authority
+    value: https://keycloak.34.116.253.250.nip.io/realms/team-06
+  - name: Jwt__MetadataAddress
+    value: http://keycloak.auth.svc.cluster.local/realms/team-06/.well-known/openid-configuration
+  - name: Jwt__Audience
+    value: account
+  - name: Services__GuestService
+    value: http://guest-service.team-06.svc.cluster.local
+  - name: Services__PaymentService
+    value: http://payment-service.team-06.svc.cluster.local
+
+serviceAccount:
+  name: guest-score-service

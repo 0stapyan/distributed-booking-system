@@ -1,0 +1,36 @@
+apiVersion: policy.linkerd.io/v1beta1
+kind: Server
+metadata:
+  name: hotel-service
+  namespace: team-06
+spec:
+  podSelector:
+    matchLabels:
+      app: hotel-service
+  port: 8080
+  proxyProtocol: HTTP/1
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: hotel-clients
+  namespace: team-06
+spec:
+  identities:
+    - "api-gateway.team-06.serviceaccount.identity.linkerd.cluster.local"
+    - "admin-gateway.team-06.serviceaccount.identity.linkerd.cluster.local"
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: hotel-service-authz
+  namespace: team-06
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: hotel-service
+  requiredAuthenticationRefs:
+    - name: hotel-clients
+      kind: MeshTLSAuthentication
+      group: policy.linkerd.io

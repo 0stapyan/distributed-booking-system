@@ -1,0 +1,14 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: e3-payment-failure
+  namespace: team-06
+spec:
+  action: pod-failure
+  mode: all
+  selector:
+    namespaces:
+      - team-06
+    labelSelectors:
+      app: payment-service
+  duration: "3m"

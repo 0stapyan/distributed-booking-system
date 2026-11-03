@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-churn
+  namespace: team-06
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          args: ["run", "/scripts/k6-churn-load.js"]
+          env:
+            - name: GATEWAY_URL
+              value: http://api-gateway.team-06.svc.cluster.local
+            - name: KEYCLOAK_TOKEN_URL
+              value: http://keycloak.auth.svc.cluster.local/realms/team-06/protocol/openid-connect/token
+            - name: KEYCLOAK_CLIENT_ID
+              value: shop-web
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: k6-keycloak
+                  key: clientSecret
+            - name: KEYCLOAK_USERNAME
+              value: alice
+            - name: KEYCLOAK_PASSWORD
+              value: alice
+            - name: ROOMS
+              value: "300"
+            - name: READ_RPS
+              value: "10"
+            - name: DURATION
+              value: "6m"
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: script
+          configMap:
+            name: k6-churn-script

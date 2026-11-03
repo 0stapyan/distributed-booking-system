@@ -1,0 +1,19 @@
+apiVersion: policy.linkerd.io/v1beta3
+kind: HTTPRoute
+metadata:
+  name: guest-score-service-canary-split
+  namespace: team-06
+spec:
+  parentRefs:
+    - name: guest-score-service
+      kind: Service
+      group: ""
+      port: 80
+  rules:
+    - backendRefs:
+        - name: guest-score-service
+          port: 80
+          weight: 80
+        - name: guest-score-service-canary
+          port: 80
+          weight: 20

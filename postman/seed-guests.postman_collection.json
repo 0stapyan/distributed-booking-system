@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "Seed GuestService — 1000 Guests",
+    "_postman_id": "seed-guests-collection-v1",
+    "description": "Seeds 1000 realistic guest records to the deployed GuestService. Run with Collection Runner or Newman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://team-06.guest.34.116.253.250.nip.io",
+      "type": "string"
+    },
+    {
+      "key": "counter",
+      "value": "0",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Guest",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var firstNames = [",
+              "  'James','John','Robert','Michael','William','David','Richard','Joseph','Thomas','Charles',",
+              "  'Mary','Patricia','Jennifer','Linda','Barbara','Elizabeth','Susan','Jessica','Sarah','Karen',",
+              "  'Oliver','Harry','George','Jack','Noah','Leo','Charlie','Liam','Henry','Ethan',",
+              "  'Emma','Olivia','Isabella','Sophia','Charlotte','Amelia','Mia','Harper','Evelyn','Abigail',",
+              "  'Pierre','Marie','Hans','Stefan','Marco','Sofia','Carlos','Ana','Lucas','Elena'",
+              "];",
+              "",
+              "var lastNames = [",
+              "  'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Wilson','Taylor',",
+              "  'Anderson','Thomas','Jackson','White','Harris','Martin','Thompson','Lewis','Hall','Allen',",
+              "  'Mueller','Schmidt','Fischer','Weber','Meyer','Bauer','Richter','Klein','Wolf','Braun',",
+              "  'Dupont','Bernard','Simon','Laurent','Leroy','Moreau','Robert','Petit','Rossi','Ferrari',",
+              "  'Russo','Romano','Colombo','Costa','Ricci','Gonzalez','Rodriguez','Lopez','Martinez','Perez'",
+              "];",
+              "",
+              "var domains = ['gmail.com','yahoo.com','outlook.com','hotmail.com','icloud.com','protonmail.com','mail.com','live.com'];",
+              "",
+              "var phonePrefixes = ['+1','+44','+49','+33','+39','+34','+31','+46','+47','+41'];",
+              "",
+              "function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }",
+              "function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }",
+              "",
+              "var firstName = rand(firstNames);",
+              "var lastName  = rand(lastNames);",
+              "var suffix    = randInt(1, 9999);",
+              "var email     = firstName.toLowerCase() + '.' + lastName.toLowerCase() + suffix + '@' + rand(domains);",
+              "var phone     = rand(phonePrefixes) + randInt(1000000000, 9999999999);",
+              "",
+              "pm.collectionVariables.set('firstName', firstName);",
+              "pm.collectionVariables.set('lastName',  lastName);",
+              "pm.collectionVariables.set('email',     email);",
+              "pm.collectionVariables.set('phone',     phone);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 2xx', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              "",
+              "var counter = parseInt(pm.collectionVariables.get('counter') || '0');",
+              "counter++;",
+              "pm.collectionVariables.set('counter', counter);",
+              "",
+              "if (counter % 100 === 0) {",
+              "    console.log('Progress: ' + counter + ' / 1000 guests created');",
+              "}",
+              "",
+              "if (counter < 1000) {",
+              "    postman.setNextRequest('Create Guest');",
+              "} else {",
+              "    console.log('Done! 1000 guests created.');",
+              "    postman.setNextRequest(null);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/guests",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "guests"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"{{phone}}\"\n}"
+        }
+      }
+    }
+  ]
+}

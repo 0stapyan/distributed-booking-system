@@ -1,0 +1,106 @@
+{
+  "info": {
+    "name": "Booking Service Seed",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "bookingBaseUrl",
+      "value": "http://team-06.booking.34.116.253.250.nip.io"
+    },
+    {
+      "key": "hotelBaseUrl",
+      "value": "http://team-06.hotel.34.116.253.250.nip.io"
+    },
+    {
+      "key": "iter",
+      "value": "0"
+    },
+    {
+      "key": "roomId",
+      "value": "1"
+    },
+    {
+      "key": "guestIds",
+      "value": "[1]"
+    },
+    {
+      "key": "checkIn",
+      "value": ""
+    },
+    {
+      "key": "checkOut",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Booking",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const rooms = [",
+              "  { id: 1, guestIds: [1] },",
+              "  { id: 2, guestIds: [1, 2] },",
+              "  { id: 3, guestIds: [1, 2] },",
+              "  { id: 4, guestIds: [1, 2] }",
+              "];",
+              "",
+              "const iter = parseInt(pm.collectionVariables.get('iter') || '0');",
+              "const room = rooms[iter % rooms.length];",
+              "",
+              "pm.collectionVariables.set('iter', String(iter + 1));",
+              "pm.collectionVariables.set('roomId', String(room.id));",
+              "pm.collectionVariables.set('guestIds', JSON.stringify(room.guestIds));",
+              "",
+              "const now = new Date();",
+              "const daysOffset = (iter % 365) + 1;",
+              "const nights = (iter % 7) + 1;",
+              "const checkIn = new Date(now.getTime() + daysOffset * 86400000);",
+              "const checkOut = new Date(checkIn.getTime() + nights * 86400000);",
+              "",
+              "pm.collectionVariables.set('checkIn', checkIn.toISOString());",
+              "pm.collectionVariables.set('checkOut', checkOut.toISOString());",
+              "",
+              "const hotelBaseUrl = pm.collectionVariables.get('hotelBaseUrl');",
+              "",
+              "pm.sendRequest(",
+              "  {",
+              "    url: hotelBaseUrl + '/api/rooms/' + room.id + '/availability',",
+              "    method: 'PATCH',",
+              "    header: [{ key: 'Content-Type', value: 'application/json' }],",
+              "    body: { mode: 'raw', raw: JSON.stringify({ isAvailable: true }) }",
+              "  },",
+              "  function(err, res) {",
+              "    if (err) console.log('Room patch error:', err);",
+              "  }",
+              ");"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{bookingBaseUrl}}/api/bookings",
+          "host": ["{{bookingBaseUrl}}"],
+          "path": ["api", "bookings"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"guestIds\": {{guestIds}},\n  \"roomId\": {{roomId}},\n  \"checkInDate\": \"{{checkIn}}\",\n  \"checkOutDate\": \"{{checkOut}}\"\n}"
+        }
+      }
+    }
+  ]
+}
